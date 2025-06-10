@@ -21,7 +21,7 @@ export default class Game {
   player?: Player;
   world?: World
   rapierDebugRenderer?: RapierDebugRenderer
-//   eventQueue?: EventQueue
+  eventQueue?: EventQueue
 
   constructor(scene: Scene, camera: PerspectiveCamera, renderer: WebGLRenderer) {
     this.scene = scene;
@@ -33,7 +33,7 @@ export default class Game {
     await RAPIER.init() // This line is only needed if using the compat version
     
     this.world = new World({ x: 0.0, y: -9.81, z: 0.0 } as any)
-    // this.eventQueue = new EventQueue(true)
+    this.eventQueue = new EventQueue(true)
 
     this.rapierDebugRenderer = new RapierDebugRenderer(this.scene, this.world)
     const gui = new GUI()
@@ -61,12 +61,12 @@ export default class Game {
 
   update(delta: number) {
     ;(this.world as World).timestep = Math.min(delta, 0.1)
-    this.world?.step() // this.eventQueue)
-    // this.eventQueue?.drainCollisionEvents((_, __, started) => {
-    //   if (started) {
-    //     this.player?.setGrounded()
-    //   }
-    // })
+    this.world?.step(this.eventQueue)
+    this.eventQueue?.drainCollisionEvents((_, __, started) => {
+      if (started) {
+        this.player?.setGrounded()
+      }
+    })
     this.player?.update(delta);
     this.rapierDebugRenderer?.update()
   }

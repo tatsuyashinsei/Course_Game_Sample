@@ -1,7 +1,6 @@
-import { AnimationAction, AnimationMixer, Group, Mesh, Object3D } from 'three';
+import { AnimationAction, AnimationMixer, Group, Mesh, AnimationUtils } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 export default class Eve extends Group {
   mixer?: AnimationMixer;
@@ -11,63 +10,55 @@ export default class Eve extends Group {
     super();
 
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('/jsm/libs/draco/');
+    dracoLoader.setDecoderPath('jsm/libs/draco/');
 
     this.glTFLoader = new GLTFLoader();
     this.glTFLoader.setDRACOLoader(dracoLoader);
-    this.glTFLoader.setMeshoptDecoder(MeshoptDecoder);
   }
 
   async init(animationActions: { [key: string]: AnimationAction }) {
-    console.log('Loading animations...');
-    const [baseModel, idle, run, jump, dance] = await Promise.all([
-      this.glTFLoader.loadAsync('models/MarkerMan$@walk_compressed.glb'),
-      this.glTFLoader.loadAsync('models/MarkerMan@idle.glb'),
-      this.glTFLoader.loadAsync('models/MarkerMan@run.glb'),
-      this.glTFLoader.loadAsync('models/MarkerMan@jump.glb'),
-      this.glTFLoader.loadAsync('models/MarkerMan@dance.glb'),
+    const [eve, idle, run, jump, pose] = await Promise.all([
+      this.glTFLoader.loadAsync('models/eve$@walk_compressed.glb'),
+      this.glTFLoader.loadAsync('models/eve@idle.glb'),
+      this.glTFLoader.loadAsync('models/eve@run.glb'),
+      this.glTFLoader.loadAsync('models/eve@jump.glb'),
+      this.glTFLoader.loadAsync('models/eve@pose.glb'),
     ]);
 
-    console.log('Base model animations:', baseModel.animations);
-    console.log('Base model animation names:', baseModel.animations.map(a => a.name));
-    console.log('Idle animations:', idle.animations);
-    console.log('Run animations:', run.animations);
-    console.log('Jump animations:', jump.animations);
-    console.log('Dance animations:', dance.animations);
-
-    baseModel.scene.traverse((m: Object3D) => {
+    eve.scene.traverse((m) => {
       if ((m as Mesh).isMesh) {
         m.castShadow = true;
       }
     });
 
-    this.mixer = new AnimationMixer(baseModel.scene);
+    // ------------------------------------
 
-    console.log('Idle action:', this.mixer.clipAction(idle.animations[0]));
+    // ※WalkとRunの42と17という数字は講師も試行錯誤ではじき出した数字であるとのこと。
+    //  そのため、講師による講座内容とは異なる可能性がある。
+
+    // アニメーションの継ぎ目をスムーズに繋げるため。
+
+    // ------------------------------------
+    this.mixer = new AnimationMixer(eve.scene);
     animationActions['idle'] = this.mixer.clipAction(idle.animations[0]);
-
-    console.log('Dance action:', this.mixer.clipAction(dance.animations[0]));
-    animationActions['dance'] = this.mixer.clipAction(dance.animations[0]);
-
-    console.log('Walk action:', this.mixer.clipAction(baseModel.animations[0]));
-    animationActions['walk'] = this.mixer.clipAction(baseModel.animations[0]);
-
-    console.log('Run action:', this.mixer.clipAction(run.animations[0]));
+    animationActions['walk'] = this.mixer.clipAction(eve.animations[0]);
+    animationActions['walk'] = this.mixer.clipAction(
+      AnimationUtils.subclip(eve.animations[0], 'walk', 0, 42) // この数字
+    );
     animationActions['run'] = this.mixer.clipAction(run.animations[0]);
-
-    console.log('Jump action:', this.mixer.clipAction(jump.animations[0]));
+    animationActions['run'] = this.mixer.clipAction(
+      AnimationUtils.subclip(run.animations[0], 'run', 0, 17) // この数字
+    );
+    jump.animations[0].tracks = jump.animations[0].tracks.filter(function (e) {
+      return !e.name.endsWith('.position');
+    });
+    console.log(jump.animations[0].tracks);
     animationActions['jump'] = this.mixer.clipAction(jump.animations[0]);
-
-    console.log('Animation names:');
-    console.log('- Idle:', idle.animations[0].name);
-    console.log('- Dance (Q key):', dance.animations[0].name);
-    console.log('- Walk (W key):', baseModel.animations[0].name);
-    console.log('- Run (Shift+W):', run.animations[0].name);
-    console.log('- Jump:', jump.animations[0].name);
+    animationActions['pose'] = this.mixer.clipAction(pose.animations[0]);
 
     animationActions['idle'].play();
 
-    this.add(baseModel.scene);
+    this.add(eve.scene);
   }
 
   update(delta: number) {

@@ -5,6 +5,7 @@ import {
   Scene,
   TextureLoader,
   Color,
+  CameraHelper,
 } from 'three';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
