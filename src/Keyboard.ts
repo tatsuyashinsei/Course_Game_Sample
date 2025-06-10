@@ -1,4 +1,4 @@
-import { WebGLRenderer } from 'three/src/Three.js';
+import { WebGLRenderer } from 'three';
 
 export default class Keyboard {
   keyMap: { [key: string]: boolean } = {};

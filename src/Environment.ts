@@ -50,4 +50,16 @@ export default class Environment {
     //   });
     this.scene.background = new Color(0x87ceeb); // スカイブルー
   }
+  // ------------------------------------
+
+//   async init() {
+//     await new RGBELoader().loadAsync('img/venice_sunset_1k.hdr').then((texture) => {
+//       texture.mapping = EquirectangularReflectionMapping;
+//       this.scene.environment = texture;
+//       this.scene.background = texture;
+//       this.scene.backgroundBlurriness = 0.4;
+//     });
+//   }
+
+  // ------------------------------------
 }
