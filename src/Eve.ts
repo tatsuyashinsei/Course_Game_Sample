@@ -17,10 +17,9 @@ export default class Eve extends Group {
   }
 
   async init(animationActions: { [key: string]: AnimationAction }) {
-    const [eve, idle, run, jump, pose] = await Promise.all([
+    const [eve, idle, jump, pose] = await Promise.all([
       this.glTFLoader.loadAsync('models/eve$@walk_compressed.glb'),
       this.glTFLoader.loadAsync('models/eve@idle.glb'),
-      this.glTFLoader.loadAsync('models/eve@run.glb'),
       this.glTFLoader.loadAsync('models/eve@jump.glb'),
       this.glTFLoader.loadAsync('models/eve@pose.glb'),
     ]);
@@ -31,28 +30,15 @@ export default class Eve extends Group {
       }
     });
 
-    // ------------------------------------
-
-    // ※WalkとRunの42と17という数字は講師も試行錯誤ではじき出した数字であるとのこと。
-    //  そのため、講師による講座内容とは異なる可能性がある。
-
-    // アニメーションの継ぎ目をスムーズに繋げるため。
-
-    // ------------------------------------
     this.mixer = new AnimationMixer(eve.scene);
     animationActions['idle'] = this.mixer.clipAction(idle.animations[0]);
-    animationActions['walk'] = this.mixer.clipAction(eve.animations[0]);
     animationActions['walk'] = this.mixer.clipAction(
-      AnimationUtils.subclip(eve.animations[0], 'walk', 0, 42) // この数字
-    );
-    animationActions['run'] = this.mixer.clipAction(run.animations[0]);
-    animationActions['run'] = this.mixer.clipAction(
-      AnimationUtils.subclip(run.animations[0], 'run', 0, 17) // この数字
+      AnimationUtils.subclip(eve.animations[0], 'walk', 0, 42)
     );
     jump.animations[0].tracks = jump.animations[0].tracks.filter(function (e) {
-      return !e.name.endsWith('.position');
-    });
-    console.log(jump.animations[0].tracks);
+      return !e.name.endsWith('.position')
+    })
+    console.log(jump.animations[0].tracks)
     animationActions['jump'] = this.mixer.clipAction(jump.animations[0]);
     animationActions['pose'] = this.mixer.clipAction(pose.animations[0]);
 
