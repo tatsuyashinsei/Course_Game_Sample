@@ -34,10 +34,12 @@ export default class AnimationController {
           this.speed = 5.25;
           break;
         case this.animationActions["run"]:
-        case this.animationActions["jump"]:
           this.speed = 16;
           break;
-        case this.animationActions["pose"]:
+        case this.animationActions["jump"]:
+          this.speed = 0;
+          break;
+        case this.animationActions["dance"]:
         case this.animationActions["idle"]:
           this.speed = 0;
           break;
@@ -50,10 +52,14 @@ export default class AnimationController {
       let actionAssigned = false;
 
       if (this.keyboard.keyMap["Space"]) {
+        console.log("Jump triggered");
         this.setAction(this.animationActions["jump"]);
         actionAssigned = true;
-        this.wait = true; // blocks further actions until jump is finished
-        setTimeout(() => (this.wait = false), 1200);
+        this.wait = true;
+        setTimeout(() => {
+          this.wait = false;
+          this.setAction(this.animationActions["idle"]);
+        }, 1000);
       }
 
       if (
@@ -70,38 +76,17 @@ export default class AnimationController {
         actionAssigned = true;
       }
 
-      // if (
-      //   !actionAssigned &&
-      //   (this.keyboard.keyMap['KeyW'] ||
-      //     this.keyboard.keyMap['KeyA'] ||
-      //     this.keyboard.keyMap['KeyS'] ||
-      //     this.keyboard.keyMap['KeyD']) &&
-      //   this.keyboard.keyMap['ShiftLeft']
-      // ) {
-      //   this.setAction(this.animationActions['run'])
-      //   actionAssigned = true
-      // }
-
-      // if (
-      //   !actionAssigned &&
-      //   (this.keyboard.keyMap['KeyW'] ||
-      //     this.keyboard.keyMap['KeyA'] ||
-      //     this.keyboard.keyMap['KeyS'] ||
-      //     this.keyboard.keyMap['KeyD'])
-      // ) {
-      //   this.setAction(this.animationActions['walk'])
-      //   actionAssigned = true
-      // }
-
       if (!actionAssigned && this.keyboard.keyMap["KeyQ"]) {
-        this.setAction(this.animationActions["pose"]);
+        console.log("Dance triggered");
+        this.setAction(this.animationActions["dance"]);
         actionAssigned = true;
       }
 
-      !actionAssigned && this.setAction(this.animationActions["idle"]);
+      if (!actionAssigned) {
+        this.setAction(this.animationActions["idle"]);
+      }
     }
 
-    // update the Eve models animation mixer
     this.model?.update(delta);
   }
 }
